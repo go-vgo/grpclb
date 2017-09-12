@@ -1,0 +1,21 @@
+language: go
+
+go:
+  - 1.7.x
+  - 1.8.x
+  - 1.9.x
+  - tip
+
+install:
+  - export PATH=$PATH:$HOME/gopath/bin
+  # - go get -u google.golang.org/grpc 
+  # - go get -u github.com/coreos/etcd  
+  # - go get -u github.com/coreos/etcd/clientv3
+  - go get -t -d -v ./...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+# notifications:
+#   email:
+#     - .com

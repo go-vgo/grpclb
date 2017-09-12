@@ -1,0 +1,13 @@
+{
+	"comment": "v0.10.0",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "mvJhPpRLaih88oZIYRrFiL2HcGk=",
+			"path": "github.com/coreos/etcd",
+			"revision": "69f32bac34771a5973767f2870791323a0f62b6b",
+			"revisionTime": "2017-09-11T22:26:50Z"
+		}
+	],
+	"rootPath": "github.com/go-vgo/grpclb"
+}

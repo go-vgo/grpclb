@@ -19,7 +19,7 @@ import (
 	"google.golang.org/grpc/naming"
 )
 
-// resolver is the implementaion of grpc.naming.Resolver
+// resolver is the implementation of grpc.naming.Resolver
 type resolver struct {
 	serviceName string // service name to resolve
 }

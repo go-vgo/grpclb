@@ -19,7 +19,7 @@ import (
 	"google.golang.org/grpc/naming"
 )
 
-// watcher is the implementaion of grpc.naming.Watcher
+// watcher is the implementation of grpc.naming.Watcher
 type watcher struct {
 	re            *resolver // re: Etcd Resolver
 	client        etcd3.Client

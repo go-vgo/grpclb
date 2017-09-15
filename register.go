@@ -30,6 +30,94 @@ var (
 	stopSignal = make(chan bool, 1)
 )
 
+// Opt registry option
+type Opt struct {
+	Name     string
+	Host     string
+	Port     int
+	Target   string
+	Interval time.Duration
+	Ttl      int
+}
+
+// Registry gRPC naming and discovery
+func Registry(opt Opt, args ...int) error {
+	serviceValue := fmt.Sprintf("%s:%d", opt.Host, opt.Port)
+	serviceKey = fmt.Sprintf("/%s/%s/%s", Prefix, opt.Name, serviceValue)
+
+	// get endpoints for register dial address
+	var (
+		err    error
+		client *etcd3.Client
+	)
+
+	if len(args) > 0 {
+		client, err = etcd3.New(etcd3.Config{
+			Endpoints: strings.Split(opt.Target, ","),
+		})
+	} else {
+		client, err = etcd3.NewFromURL(opt.Target)
+	}
+
+	if err != nil {
+		return fmt.Errorf("grpclb: create etcd3 client failed: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	insertFunc := func() error {
+		// minimum lease TTL is ttl-second
+		resp, _ := client.Grant(context.TODO(), int64(opt.Ttl))
+		// should get first, if not exist, set it
+		// context.Background()
+		_, err := client.Get(ctx, serviceKey)
+		if err != nil {
+			if err == rpctypes.ErrKeyNotFound {
+				// ctx context.TODO()
+				if _, err := client.Put(ctx, serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
+					log.Printf("grpclb: set service '%s' with ttl to etcd3 failed: %s", opt.Name, err.Error())
+				}
+			} else {
+				log.Printf("grpclb: service '%s' connect to etcd3 failed: %s", opt.Name, err.Error())
+			}
+		} else {
+			// refresh set to true for not notifying the watcher
+			// context.Background()
+			if _, err := client.Put(ctx, serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
+				log.Printf("grpclb: refresh service '%s' with ttl to etcd3 failed: %s", opt.Name, err.Error())
+			}
+		}
+		return nil
+	}
+
+	go func() error {
+		err := insertFunc()
+		if err != nil {
+			log.Printf("insertFunc err %v", err)
+			return err
+		}
+
+		// invoke self-register with ticker
+		ticker := time.NewTicker(opt.Interval)
+
+		for {
+			select {
+			case <-stopSignal:
+				cancel()
+				return nil
+			case <-ticker.C:
+				insertFunc()
+				// return
+			case <-ctx.Done():
+				ticker.Stop()
+				client.Delete(context.Background(), serviceKey) //, &etcd3.DeleteOptions{Recursive: true}
+				return nil
+			}
+		}
+	}()
+
+	return nil
+}
+
 // Register gRPC naming and discovery
 func Register(name string, host string, port int, target string, interval time.Duration, ttl int, args ...int) error {
 	serviceValue := fmt.Sprintf("%s:%d", host, port)
@@ -40,6 +128,7 @@ func Register(name string, host string, port int, target string, interval time.D
 		err    error
 		client *etcd3.Client
 	)
+
 	if len(args) > 0 {
 		client, err = etcd3.New(etcd3.Config{
 			Endpoints: strings.Split(target, ","),
@@ -52,32 +141,54 @@ func Register(name string, host string, port int, target string, interval time.D
 		return fmt.Errorf("grpclb: create etcd3 client failed: %v", err)
 	}
 
-	go func() {
-		// invoke self-register with ticker
-		ticker := time.NewTicker(interval)
-		for {
-			// minimum lease TTL is ttl-second
-			resp, _ := client.Grant(context.TODO(), int64(ttl))
-			// should get first, if not exist, set it
-			_, err := client.Get(context.Background(), serviceKey)
-			if err != nil {
-				if err == rpctypes.ErrKeyNotFound {
-					if _, err := client.Put(context.TODO(), serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
-						log.Printf("grpclb: set service '%s' with ttl to etcd3 failed: %s", name, err.Error())
-					}
-				} else {
-					log.Printf("grpclb: service '%s' connect to etcd3 failed: %s", name, err.Error())
+	ctx, cancel := context.WithCancel(context.Background())
+	insertFunc := func() error {
+		// minimum lease TTL is ttl-second
+		resp, _ := client.Grant(context.TODO(), int64(ttl))
+		// should get first, if not exist, set it
+		// context.Background()
+		_, err := client.Get(ctx, serviceKey)
+		if err != nil {
+			if err == rpctypes.ErrKeyNotFound {
+				// ctx context.TODO()
+				if _, err := client.Put(ctx, serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
+					log.Printf("grpclb: set service '%s' with ttl to etcd3 failed: %s", name, err.Error())
 				}
 			} else {
-				// refresh set to true for not notifying the watcher
-				if _, err := client.Put(context.Background(), serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
-					log.Printf("grpclb: refresh service '%s' with ttl to etcd3 failed: %s", name, err.Error())
-				}
+				log.Printf("grpclb: service '%s' connect to etcd3 failed: %s", name, err.Error())
 			}
+		} else {
+			// refresh set to true for not notifying the watcher
+			// context.Background()
+			if _, err := client.Put(ctx, serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
+				log.Printf("grpclb: refresh service '%s' with ttl to etcd3 failed: %s", name, err.Error())
+			}
+		}
+		return nil
+	}
+
+	go func() error {
+		err := insertFunc()
+		if err != nil {
+			log.Printf("insertFunc err %v", err)
+			return err
+		}
+
+		// invoke self-register with ticker
+		ticker := time.NewTicker(interval)
+
+		for {
 			select {
 			case <-stopSignal:
-				return
+				cancel()
+				return nil
 			case <-ticker.C:
+				insertFunc()
+				// return
+			case <-ctx.Done():
+				ticker.Stop()
+				client.Delete(context.Background(), serviceKey) //, &etcd3.DeleteOptions{Recursive: true}
+				return nil
 			}
 		}
 	}()

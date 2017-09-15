@@ -35,5 +35,6 @@ func (re *resolver) Resolve(target string) (naming.Watcher, error) {
 	}
 
 	// Return watcher
-	return &watcher{re: re, client: *client}, nil
+	return newWatcher(re, *client), nil
+	// return &watcher{re: re, client: *client}, nil
 }

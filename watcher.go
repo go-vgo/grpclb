@@ -14,10 +14,26 @@ type watcher struct {
 	re            *resolver // re: Etcd Resolver
 	client        etcd3.Client
 	isInitialized bool
+	ctx           context.Context
+	cancel        context.CancelFunc
+}
+
+func newWatcher(re *resolver, cli etcd3.Client) naming.Watcher {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	w := &watcher{
+		re:     re,
+		client: cli,
+		ctx:    ctx,
+		cancel: cancel,
+	}
+
+	return w
 }
 
 // Close do nothing
 func (w *watcher) Close() {
+	w.cancel()
 }
 
 // Next to return the updates
@@ -28,7 +44,7 @@ func (w *watcher) Next() ([]*naming.Update, error) {
 	// check if is initialized
 	if !w.isInitialized {
 		// query addresses from etcd
-		resp, err := w.client.Get(context.Background(), prefix, etcd3.WithPrefix())
+		resp, err := w.client.Get(w.ctx, prefix, etcd3.WithPrefix())
 		w.isInitialized = true
 		if err == nil {
 			addrs := extractAddrs(resp)
@@ -44,7 +60,7 @@ func (w *watcher) Next() ([]*naming.Update, error) {
 	}
 
 	// generate etcd Watcher
-	rch := w.client.Watch(context.Background(), prefix, etcd3.WithPrefix())
+	rch := w.client.Watch(w.ctx, prefix, etcd3.WithPrefix())
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
 			switch ev.Type {

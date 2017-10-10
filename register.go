@@ -30,7 +30,7 @@ var (
 	stopSignal = make(chan bool, 1)
 )
 
-// Opt registry option
+// Opt registry grpc option
 type Opt struct {
 	Name     string
 	Host     string

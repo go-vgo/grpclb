@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "mvJhPpRLaih88oZIYRrFiL2HcGk=",
+			"checksumSHA1": "efdEHcEud+QCrHCIpY4gkrTy54I=",
 			"path": "github.com/coreos/etcd",
-			"revision": "69f32bac34771a5973767f2870791323a0f62b6b",
-			"revisionTime": "2017-09-11T22:26:50Z"
+			"revision": "ce0ad377d21819592c3d8c29417d9d7a5ac53f2f",
+			"revisionTime": "2018-01-27T03:38:18Z"
 		}
 	],
 	"rootPath": "github.com/go-vgo/grpclb"

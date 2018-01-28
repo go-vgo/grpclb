@@ -15,7 +15,7 @@ import (
 	"fmt"
 
 	etcd3 "github.com/coreos/etcd/clientv3"
-	"github.com/coreos/etcd/internal/mvcc/mvccpb"
+	// "github.com/coreos/etcd/internal/mvcc/mvccpb"
 	"google.golang.org/grpc/naming"
 )
 
@@ -75,9 +75,11 @@ func (w *watcher) Next() ([]*naming.Update, error) {
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
 			switch ev.Type {
-			case mvccpb.PUT:
+			// case mvccpb.PUT:
+			case etcd3.EventTypePut:
 				return []*naming.Update{{Op: naming.Add, Addr: string(ev.Kv.Value)}}, nil
-			case mvccpb.DELETE:
+			// case mvccpb.DELETE:
+			case etcd3.EventTypeDelete:
 				return []*naming.Update{{Op: naming.Delete, Addr: string(ev.Kv.Value)}}, nil
 			}
 		}

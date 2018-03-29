@@ -77,10 +77,12 @@ func (w *watcher) Next() ([]*naming.Update, error) {
 			switch ev.Type {
 			// case mvccpb.PUT:
 			case etcd3.EventTypePut:
-				return []*naming.Update{{Op: naming.Add, Addr: string(ev.Kv.Value)}}, nil
+				return []*naming.Update{{Op: naming.Add,
+					Addr: string(ev.Kv.Value)}}, nil
 			// case mvccpb.DELETE:
 			case etcd3.EventTypeDelete:
-				return []*naming.Update{{Op: naming.Delete, Addr: string(ev.Kv.Value)}}, nil
+				return []*naming.Update{{Op: naming.Delete,
+					Addr: string(ev.Kv.Value)}}, nil
 			}
 		}
 	}

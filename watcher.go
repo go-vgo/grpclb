@@ -65,6 +65,7 @@ func (w *watcher) Next() ([]*naming.Update, error) {
 				for i := range addrs {
 					updates[i] = &naming.Update{Op: naming.Add, Addr: addrs[i]}
 				}
+
 				return updates, nil
 			}
 		}
@@ -86,6 +87,7 @@ func (w *watcher) Next() ([]*naming.Update, error) {
 			}
 		}
 	}
+
 	return nil, nil
 }
 

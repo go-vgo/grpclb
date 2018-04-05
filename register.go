@@ -91,6 +91,7 @@ func Registry(opt Opt, args ...int) error {
 					opt.Name, err.Error())
 			}
 		}
+
 		return nil
 	}
 
@@ -176,6 +177,7 @@ func Register(name string, host string, port int,
 					name, err.Error())
 			}
 		}
+
 		return nil
 	}
 
@@ -213,11 +215,13 @@ func Register(name string, host string, port int,
 func UnRegister() error {
 	stopSignal <- true
 	stopSignal = make(chan bool, 1) // just a hack to avoid multi UnRegister deadlock
+
 	var err error
 	if _, err := client.Delete(context.Background(), serviceKey); err != nil {
 		log.Printf("grpclb: deregister '%s' failed: %s", serviceKey, err.Error())
 	} else {
 		log.Printf("grpclb: deregister '%s' ok.", serviceKey)
 	}
+
 	return err
 }

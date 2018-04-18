@@ -9,3 +9,15 @@
 
 A gRPC load balancer and service discovery for go
 
+## Installation/Update
+
+```
+go get -u github.com/go-vgo/grpclb
+```
+## Usage:
+
+#### [Look at an example](/examples)
+
+## License
+
+Grpclb is primarily distributed under the terms of the Apache License (Version 2.0).

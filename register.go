@@ -126,8 +126,8 @@ func Registry(opt Opt, args ...int) error {
 }
 
 // Register gRPC naming and discovery
-func Register(name string, host string, port int,
-	target string, interval time.Duration, ttl int, args ...int) error {
+func Register(name string, host string, port int, target string,
+	interval time.Duration, ttl int, args ...int) error {
 	serviceValue := fmt.Sprintf("%s:%d", host, port)
 	serviceKey = fmt.Sprintf("/%s/%s/%s", Prefix, name, serviceValue)
 

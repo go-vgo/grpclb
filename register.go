@@ -73,8 +73,10 @@ func Registry(opt Opt, args ...int) error {
 		if err != nil {
 			if err == rpctypes.ErrKeyNotFound {
 				// ctx context.TODO()
-				if _, err := client.Put(
-					ctx, serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
+				_, err := client.Put(ctx, serviceKey, serviceValue,
+					etcd3.WithLease(resp.ID))
+
+				if err != nil {
 					log.Printf("grpclb: set service '%s' with ttl to etcd3 failed: %s",
 						opt.Name, err.Error())
 				}
@@ -85,8 +87,10 @@ func Registry(opt Opt, args ...int) error {
 		} else {
 			// refresh set to true for not notifying the watcher
 			// context.Background()
-			if _, err := client.Put(
-				ctx, serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
+			_, err := client.Put(ctx, serviceKey, serviceValue,
+				etcd3.WithLease(resp.ID))
+
+			if err != nil {
 				log.Printf("grpclb: refresh service '%s' with ttl to etcd3 failed: %s",
 					opt.Name, err.Error())
 			}
@@ -159,8 +163,10 @@ func Register(name string, host string, port int, target string,
 		if err != nil {
 			if err == rpctypes.ErrKeyNotFound {
 				// ctx context.TODO()
-				if _, err := client.Put(
-					ctx, serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
+				_, err := client.Put(ctx, serviceKey, serviceValue,
+					etcd3.WithLease(resp.ID))
+
+				if err != nil {
 					log.Printf("grpclb: set service '%s' with ttl to etcd3 failed: %s",
 						name, err.Error())
 				}
@@ -171,8 +177,10 @@ func Register(name string, host string, port int, target string,
 		} else {
 			// refresh set to true for not notifying the watcher
 			// context.Background()
-			if _, err := client.Put(
-				ctx, serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
+			_, err := client.Put(ctx, serviceKey, serviceValue,
+				etcd3.WithLease(resp.ID))
+
+			if err != nil {
 				log.Printf("grpclb: refresh service '%s' with ttl to etcd3 failed: %s",
 					name, err.Error())
 			}

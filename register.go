@@ -170,29 +170,33 @@ func Register(name string, host string, port int, target string,
 					log.Printf("grpclb: set service '%s' with ttl to etcd3 failed: %s",
 						name, err.Error())
 				}
-			} else {
-				log.Printf("grpclb: service '%s' connect to etcd3 failed: %s",
-					name, err.Error())
-			}
-		} else {
-			// refresh set to true for not notifying the watcher
-			// context.Background()
-			_, err := client.Put(ctx, serviceKey, serviceValue,
-				etcd3.WithLease(resp.ID))
 
-			if err != nil {
-				log.Printf("grpclb: refresh service '%s' with ttl to etcd3 failed: %s",
-					name, err.Error())
+				return err
 			}
+
+			log.Printf("grpclb: service '%s' connect to etcd3 failed: %s",
+				name, err.Error())
+
+			return err
 		}
 
-		return nil
+		// refresh set to true for not notifying the watcher
+		// context.Background()
+		_, putErr := client.Put(ctx, serviceKey, serviceValue,
+			etcd3.WithLease(resp.ID))
+
+		if putErr != nil {
+			log.Printf("grpclb: refresh service '%s' with ttl to etcd3 failed: %s",
+				name, putErr.Error())
+		}
+
+		return putErr
 	}
 
 	go func() error {
 		err := insertFunc()
 		if err != nil {
-			log.Printf("insertFunc err %v", err)
+			log.Printf("insertFunc() err: %v", err)
 			return err
 		}
 

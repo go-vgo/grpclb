@@ -80,29 +80,31 @@ func Registry(opt Opt, args ...int) error {
 					log.Printf("grpclb: set service '%s' with ttl to etcd3 failed: %s",
 						opt.Name, err.Error())
 				}
-			} else {
-				log.Printf("grpclb: service '%s' connect to etcd3 failed: %s",
-					opt.Name, err.Error())
+				return err
 			}
-		} else {
-			// refresh set to true for not notifying the watcher
-			// context.Background()
-			_, err := client.Put(ctx, serviceKey, serviceValue,
-				etcd3.WithLease(resp.ID))
 
-			if err != nil {
-				log.Printf("grpclb: refresh service '%s' with ttl to etcd3 failed: %s",
-					opt.Name, err.Error())
-			}
+			log.Printf("grpclb: service '%s' connect to etcd3 failed: %s",
+				opt.Name, err.Error())
+			return err
 		}
 
-		return nil
+		// refresh set to true for not notifying the watcher
+		// context.Background()
+		_, putErr := client.Put(ctx, serviceKey, serviceValue,
+			etcd3.WithLease(resp.ID))
+
+		if putErr != nil {
+			log.Printf("grpclb: refresh service '%s' with ttl to etcd3 failed: %s",
+				opt.Name, putErr.Error())
+		}
+
+		return putErr
 	}
 
 	go func() error {
 		err := insertFunc()
 		if err != nil {
-			log.Printf("insertFunc err %v", err)
+			log.Printf("insertFunc() err: %v", err)
 			return err
 		}
 

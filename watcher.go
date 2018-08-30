@@ -14,8 +14,7 @@ import (
 	"context"
 	"fmt"
 
-	etcd3 "github.com/coreos/etcd/clientv3"
-	// "github.com/coreos/etcd/internal/mvcc/mvccpb"
+	etcd3 "go.etcd.io/etcd/clientv3"
 	"google.golang.org/grpc/naming"
 )
 
